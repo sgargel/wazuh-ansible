@@ -114,32 +114,32 @@
 
 - name: Create the certificates directory
   file:
-    path: "{{master_certs_destination}}"
+    path: "{{ master_certs_destination }}"
     state: directory
     mode: '0700'
   delegate_to: "127.0.0.1"
-  when: 
+  when:
     - node_certs_generator
     - elasticsearch_xpack_security
 
 - name: Copying certificates to Ansible master
   fetch:
-    src: "{{node_certs_source}}/certs.zip"
-    dest: "{{master_certs_destination}}/"
+    src: "{{ node_certs_source }}/certs.zip"
+    dest: "{{ master_certs_destination }}/"
     flat: yes
     mode: 0700
-  when: 
+  when:
     - node_certs_generator
     - elasticsearch_xpack_security
   tags: xpack-security
 
 - name: Unzip generated certs.zip
   unarchive:
-    src: "{{master_certs_destination}}/certs.zip"
-    dest: "{{master_certs_destination}}/"
+    src: "{{ master_certs_destination }}/certs.zip"
+    dest: "{{ master_certs_destination }}/"
   become: true
   delegate_to: "127.0.0.1"
-  when: 
+  when:
     - node_certs_generator
     - elasticsearch_xpack_security
   tags: xpack-security
@@ -168,12 +168,12 @@
 
 - name: Copying node's certificate from master
   copy:
-    src: "{{item}}"
-    dest: "{{node_certs_destination}}/"
-  with_items: 
-    - "{{master_certs_destination}}/{{elasticsearch_node_name}}/{{ elasticsearch_node_name }}.key" 
-    - "{{master_certs_destination}}/{{elasticsearch_node_name}}/{{ elasticsearch_node_name }}.crt"
-    - "{{master_certs_destination}}/ca/ca.crt"
+    src: "{{ item }}"
+    dest: "{{ node_certs_destination }}/"
+  with_items:
+    - "{{ master_certs_destination }}/{{ elasticsearch_node_name }}/{{ elasticsearch_node_name }}.key"
+    - "{{ master_certs_destination }}/{{ elasticsearch_node_name }}/{{ elasticsearch_node_name }}.crt"
+    - "{{ master_certs_destination }}/ca/ca.crt"
   tags: xpack-security
 
 - name: Configure Elasticsearch.
