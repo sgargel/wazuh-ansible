@@ -25,11 +25,19 @@ node_certs_destination: /etc/elasticsearch/certs
 
 master_certs_destination: /es_certs
 
-# CA generation
-generate_CA: false
 
-ca_key_name: myCA.key
-ca_cert_name: myCA.pem
+# Following parameters configure the elasticsearch-certutil binary execution.
+# Visit https://www.elastic.co/guide/en/elasticsearch/reference/current/certutil.html for more information
+
+# The master_certs_destination is the folder which will contains the certificates and will be used for certs distribution
+
+# CA generation 
+generate_CA: false         
+pkcs12_file_name: ""                     # Specifies the path to an existing CA key pair (in PKCS#12 format).
+pkcs12_ca_pass: ""                       # Specifies the password for an existing CA private key or the generated CA private key.
+generated_certs_keys_pass: ""            # Specifies the password for the generated private keys. Required in PKCS12, optional in PEM.
+pem_key_name: myCA.key                   # Specifies the path to an existing CA private key (in PEM format)
+pem_cert_name: myCA.pem                  # Specifies the path to an existing CA certificate (in PEM format)
 
 # Rsync
 rsync_path: /usr/bin/rsync
