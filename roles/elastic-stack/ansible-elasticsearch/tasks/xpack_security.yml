@@ -73,15 +73,45 @@
     - node_certs_generator
     - not xpack_certs_zip.stat.exists
     - generate_CA
+    - ca_file_path is not defined
   tags: xpack-security
 
-- name: Generating certificates for Elasticsearch security (using provided CA)
-  shell: /usr/share/elasticsearch/bin/elasticsearch-certutil cert --ca-key {{ node_certs_source }}/{{ ca_key_name }} --ca-cert {{ node_certs_source }}/{{ ca_cert_name }} --pem --in {{ node_certs_source }}/instances.yml --out {{ node_certs_source }}/certs.zip
+- name: Generating certificates for Elasticsearch security (using provided CA .pem)
+  shell: /usr/share/elasticsearch/bin/elasticsearch-certutil cert --ca-key {{ node_certs_source }}/{{ pem_key_name }} --ca-cert {{ node_certs_source }}/{{ pem_cert_name }} --pem --in {{ node_certs_source }}/instances.yml --out {{ node_certs_source }}/certs.zip
   when:
     - node_certs_generator
     - not xpack_certs_zip.stat.exists
     - not generate_CA
   tags: xpack-security 
+
+## PKCS#12 Certificate generation
+
+- name: Import required PKCS#12 key-pair
+  copy:
+    src: "{{ master_certs_destination }}/ca/{{ pkcs12_file_name }}"
+    dest: "{{ node_certs_source }}/{{ pkcs12_file_name }}"
+    owner: root
+    group: elasticsearch
+    mode: '0660'
+  when:
+   - node_certs_generator
+   - not xpack_certs_zip.stat.exists
+   - not generate_CA
+   - pkcs12_file_name != ""
+   - pkcs12_ca_pass != ""
+   - generated_certs_keys_pass != ""
+  tags: xpack-security
+
+- name: Generating certificates for Elasticsearch security (using provided CA PKCS12)
+  shell: /usr/share/elasticsearch/bin/elasticsearch-certutil cert --ca {{ node_certs_source }}/{{ pkcs12_file_name }} --ca-pass {{ pkcs12_ca_pass }} --pass {{ generated_certs_keys_pass }}  --in {{ node_certs_source }}/instances.yml --out {{ node_certs_source }}/certs.zip
+  when:
+    - node_certs_generator
+    - not xpack_certs_zip.stat.exists
+    - not generate_CA
+    - pkcs12_file_name != ""
+    - pkcs12_ca_pass != ""
+    - generated_certs_keys_pass != ""
+  tags: xpack-security
 
 - name: Verify the Elastic certificates directory in master
   file:
