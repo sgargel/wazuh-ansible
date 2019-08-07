@@ -41,7 +41,7 @@
 
 ## PEM Certificate Generation
 
-- name: Importing custom CA key 
+- name: Importing custom CA key (PEM)
   copy:
     src: "{{ master_certs_destination }}/ca/{{ pem_key_name }}"
     dest: "{{ node_certs_source }}/{{ pem_key_name }}"
@@ -50,10 +50,11 @@
     mode: '0660'
   when:
    - not generate_CA
-   - ca_file_path is not defined
+   - pem_key_name != ""
+   - pem_cert_name != ""
   tags: xpack-security
 
-- name: Importing custom CA cert
+- name: Importing custom CA cert (PEM)
   copy:
     src: "{{ master_certs_destination }}/ca/{{ pem_cert_name }}"
     dest: "{{ node_certs_source }}/{{ pem_cert_name }}"
@@ -62,10 +63,11 @@
     mode: '0660'
   when:
     - not generate_CA
-    - ca_file_path is not defined
+   - pem_key_name != ""
+   - pem_cert_name != ""
   tags: xpack-security
 
-- name: Generating certificates for Elasticsearch security (generating CA)
+- name: Generating certificates for Elasticsearch security (generating CA | PEM)
   shell: >-
     /usr/share/elasticsearch/bin/elasticsearch-certutil cert ca --pem --in 
     {{ node_certs_source }}/instances.yml --out {{ node_certs_source }}/certs.zip
@@ -76,12 +78,14 @@
     - ca_file_path is not defined
   tags: xpack-security
 
-- name: Generating certificates for Elasticsearch security (using provided CA .pem)
+- name: Generating certificates for Elasticsearch security (using provided CA | PEM)
   shell: /usr/share/elasticsearch/bin/elasticsearch-certutil cert --ca-key {{ node_certs_source }}/{{ pem_key_name }} --ca-cert {{ node_certs_source }}/{{ pem_cert_name }} --pem --in {{ node_certs_source }}/instances.yml --out {{ node_certs_source }}/certs.zip
   when:
     - node_certs_generator
     - not xpack_certs_zip.stat.exists
     - not generate_CA
+    - pem_key_name != ""
+    - pem_cert_name != ""
   tags: xpack-security 
 
 ## PKCS#12 Certificate generation
@@ -99,7 +103,6 @@
    - not generate_CA
    - pkcs12_file_name != ""
    - pkcs12_ca_pass != ""
-   - generated_certs_keys_pass != ""
   tags: xpack-security
 
 - name: Generating certificates for Elasticsearch security (using provided CA PKCS12)
@@ -110,7 +113,6 @@
     - not generate_CA
     - pkcs12_file_name != ""
     - pkcs12_ca_pass != ""
-    - generated_certs_keys_pass != ""
   tags: xpack-security
 
 - name: Verify the Elastic certificates directory in master
