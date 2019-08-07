@@ -191,7 +191,7 @@
     - generate_CA
   tags: xpack-security
 
-- name: Copying node's certificate from master (Custom CA)
+- name: Copying node's certificate from master (Custom CA | PEM)
   copy:
     src: "{{item}}"
     dest: "{{node_certs_destination}}/"
@@ -204,6 +204,25 @@
     - "{{master_certs_destination}}/ca/{{pem_cert_name}}"
   when:
     - not generate_CA
+    - pem_key_name != ""
+    - pem_cert_name != ""
+  tags: xpack-security
+
+- name: Copying node's certificate from master (Custom CA | PKCS12)
+  copy:
+    src: "{{item}}"
+    dest: "{{node_certs_destination}}/"
+    owner: root
+    group: elasticsearch
+    mode: '0660'
+  with_items: 
+    - "{{master_certs_destination}}/{{elasticsearch_node_name}}/{{ elasticsearch_node_name }}.p12" 
+    - "{{master_certs_destination}}/ca/{{pkcs12_file_name}}"
+  when:
+    - not generate_CA
+    - pkcs12_file_name != ""
+    - pkcs12_ca_pass != ""
+    
   tags: xpack-security
 
 - name: Set elasticsearch bootstrap password
